@@ -136,3 +136,35 @@ Udostępnianie stylu kodu i definicji formatowania za pośrednictwem repozytoriu
 Zalecanym środowiskiem developerskim dla Androida jest [Android Studio](https://developer.android.com/sdk/installing/studio.html) ponieważ jest rozwijane i aktualizowane przez Google, posiada dobre wsparcie dla Gradle, posiada szereg przydatnych narzędzi do monitorowania i analiz oraz jest w pełni dostosowany do developmentu Androida.
 
 Unikaj dodawania specyficznych plików konfiguracyjnych Android Studio, takich jak pliki `.iml` do systemu kontroli wersji, ponieważ często zawierają one konfiguracje specyficzne dla twojego komputera lokalnego, które nie będą działać u Twoich współpracowników.
+
+### Biblioteki
+
+- **[Jackson](http://wiki.fasterxml.com/JacksonHome)** to biblioteka Java do serializacji i deserializacji JSON, ma szeroki zakres i wszechstronny interfejs API, obsługujący różne sposoby przetwarzania JSON: streaming, model drzewa w pamięci i tradycyjne JSON-POJO powiązanie danych. 
+
+- [Gson](https://code.google.com/p/google-gson/) to kolejny popularny wybór, będący mniejszą biblioteką niż Jackson. Może wybierzesz go, aby uniknąć przekroczenia limitu 65k metod. Ponadto, jeśli używasz...
+- [Moshi](https://github.com/square/moshi), jednej z open source'owych bibliotek [Square](https://github.com/square), opiera się na nauce płynącej z rozwoju Gsona, a także dobrze integruje się z Kotlinem.
+
+<a name="networklibs"></a>
+**Praca w sieci, buforowanie i obrazy.** Istnieje kilka sprawdzonych w praktyce rozwiązań do wysyłania żądań do serwerów, których powinieneś używać zamiast implementować własnego klienta. Zalecamy oparcie twojego stosu wokół [OkHttp](http://square.github.io/okhttp/) dla wydajnych żądań HTTP i użycie [Retrofit](http://square.github.io/retrofit/) w celu zapewnienia bezpieczeństwa. Jeśli wybierzesz Retrofit, rozważ [Picasso](http://square.github.io/picasso/) do ładowania i buforowania obrazów.
+
+Retrofit, Picasso i OkHttp są tworzone przez tę samą firmę, więc dobrze się uzupełniają, a problemy ze zgodnością są rzadkością.
+
+[Glide](https://github.com/bumptech/glide) to kolejna opcja do ładowania i buforowania obrazów. Obsługuje animowane GIF-y, okrągłe obrazy i twierdzi, że ma lepszą wydajność niż Picasso, ale także większą liczbę metod.
+
+**RxJava** jest biblioteką do programowania reaktywnego, innymi słowy, obsługującą zdarzenia asynchroniczne. Jest to potężny paradygmat, ale ma również stromą krzywą uczenia się. Zalecamy zachować ostrożność przed użyciem tej biblioteki do zaprojektowania całej aplikacji. Napisaliśmy na niej kilka postów na blogu: [[1]](http://blog.futurice.com/tech-pick-of-the-week-rx-for-net-and-rxjava-for-android), [[2]](http://blog.futurice.com/top-7-tips-for-rxjava-on-android), [[3]](https://gist.github.com/staltz/868e7e9bc2a7b8c1f754), [[4]](http://blog.futurice.com/android-development-has-its-own-swift). W przypadku aplikacji referencyjnej nasza aplikacja Open Source [Freesound Android](https://github.com/futurice/freesound-android) szeroko wykorzystuje RxJava 2.
+
+Jeśli nie masz wcześniejszego doświadczenia z Rx, zacznij od stosowania go tylko w odpowiedziach z API aplikacji. Możesz też rozpocząć od zastosowania do prostej obsługi zdarzeń interfejsu, takich jak kliknięcia lub wpisywanie zdarzeń w polu wyszukiwania. Jeśli jesteś pewny swoich umiejętności Rx i chcesz zastosować go do całej architektury, to napisz dokumentację na temat wszystkich trudnych części. Należy pamiętać, że inni programiści nieznający RxJava mogą mieć trudności z utrzymaniem projektu. Staraj się, aby pomóc im zrozumieć kod, a także Rx.
+
+Używaj [RxAndroid](https://github.com/ReactiveX/RxAndroid) dla obsługi wątków Androida i [RxBinding](https://github.com/JakeWharton/RxBinding) dla łatwego tworzenia Observables z istniejących komponentów Androida.
+
+**[Retrolambda](https://github.com/evant/gradle-retrolambda)** jest biblioteką Java do używania składni wyrażeń Lambda w systemie Android i innych platformach przed JDK8. Pomaga to w utrzymaniu kodu w czysty i czytelny sposób, zwłaszcza jeśli używasz stylu funkcjonalnego, takiego jak RxJava.
+
+Android Studio oferuje obsługę wspomagania kodu dla lambdamy w języku Java 8. Jeśli jesteś nowy w lambdach, po prostu wykonaj następujące czynności, aby rozpocząć:
+
+- Każdy interfejs posiadający tylko jedną metodę jest "przyjazny dla lambda" i może być złożony w bardziej zwartej składni
+- Jeśli masz wątpliwości co do parametrów itp., napisz normalną anonimową klasę wewnętrzną, a następnie pozwól Android Studio spasować ją w lambda.
+
+Zwróć uwagę, że z wersji Android Studio 3.0, [Retrolambda nie jest już wymagana](https://developer.android.com/studio/preview/features/java8-support.html).
+
+<a name="methodlimitation"></a>
+**Uważaj na ograniczenie metody dex i unikaj używania wielu bibliotek.** Aplikacje na Androida, gdy są spakowane jako plik dex, mają surowe ograniczenie użytych 65536 metod [[1]](https://medium.com/@rotxed/dex-skys-the-limit-no-65k-methods-is-28e6cb40cf71) [[2]](http://blog.persistent.info/2014/05/per-package-method-counts-for-androids.html) [[3]](http://jakewharton.com/play-services-is-a-monolith/). Jeśli przekroczysz limit, zobaczysz błąd krytyczny kompilacji. Z tego powodu użyj minimalnej ilości bibliotek i użyj narzędzia [dex-method-counts](https://github.com/mihaip/dex-method-counts), aby określić, który zestaw bibliotek może być użyty, aby pozostać poniżej limitu. W szczególności unikaj używania biblioteki Guava, ponieważ zawiera ona ponad 13 tys. Metod.
