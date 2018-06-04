@@ -128,7 +128,7 @@ Use different icons to distinguish the builds installed on a device—for exampl
 **Share debug app keystore file**
 Sharing the debug APK keystore file via the app repository saves time when testing on shared devices and avoids the uninstalling/reinstalling of the app. It also simplifies the processing of working with some Android SDKs, such as Facebook, which require the registration of a single key store hash. Unlike the release key file, the debug key file can safely be added to your repository.
 
-**Share code style formatting defintions**
+**Share code style formatting definitions**
 Sharing the code style and formatting definitions via the app repository helps ensure a visually consistent code base and makes code comprehension and reviews easier.
 
 ### Android Studio as your main IDE
