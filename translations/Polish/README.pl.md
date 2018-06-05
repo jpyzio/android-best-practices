@@ -52,7 +52,6 @@ Mimo że Gradle oferuje dużą elastyczność w strukturze projektu. Powinieneś
 
 **Małe zadania.** Zamiast skryptów (powłoki, Python, Perl itp.), możesz wykonywać zadania w Gradle. Wystarczy zapoznać się z [Dokumentacją Gradle'a](http://www.gradle.org/docs/current/userguide/userguide_single.html#N10CBF), aby uzyskać więcej informacji. Google zapewnia także pomocne [przepisy Gradle'a](https://developer.android.com/studio/build/gradle-tips.html), specyficzne dla Androida.
 
-**Hasła.** In your app's `build.gradle` you will need to define the `signingConfigs` for the release build. Here is what you should avoid:
 **Hasła.** W pliku `build.gradle` Twojej aplikacji będziesz musiał zdefiniować `signingConfigs` dla wersji release. Oto, czego należy unikać:
 
 _Nie rób tego!_. Pojawi się to w systemie kontroli wersji.
@@ -76,7 +75,7 @@ KEYSTORE_PASSWORD=password123
 KEY_PASSWORD=password789
 ```
 
-Plik ten jest automatycznie importowany przez Gradle, więc możesz go użyć w `build.gradle` jak poniżej:a`
+Plik ten jest automatycznie importowany przez Gradle, więc możesz go użyć w `build.gradle` jak poniżej:
 
 ```groovy
 signingConfigs {
@@ -168,3 +167,28 @@ Zwróć uwagę, że z wersji Android Studio 3.0, [Retrolambda nie jest już wyma
 
 <a name="methodlimitation"></a>
 **Uważaj na ograniczenie metody dex i unikaj używania wielu bibliotek.** Aplikacje na Androida, gdy są spakowane jako plik dex, mają surowe ograniczenie użytych 65536 metod [[1]](https://medium.com/@rotxed/dex-skys-the-limit-no-65k-methods-is-28e6cb40cf71) [[2]](http://blog.persistent.info/2014/05/per-package-method-counts-for-androids.html) [[3]](http://jakewharton.com/play-services-is-a-monolith/). Jeśli przekroczysz limit, zobaczysz błąd krytyczny kompilacji. Z tego powodu użyj minimalnej ilości bibliotek i użyj narzędzia [dex-method-counts](https://github.com/mihaip/dex-method-counts), aby określić, który zestaw bibliotek może być użyty, aby pozostać poniżej limitu. W szczególności unikaj używania biblioteki Guava, ponieważ zawiera ona ponad 13 tys. Metod.
+
+### Aktywności i Fragmenty
+
+Nie ma zgody wśród społeczności ani twórców Futurice, jak najlepiej zorganizować architekturę Androida za pomocą Fragmentów i Aktywności. Square ma nawet [bibliotekę do budowania architektury głównie za pomocą Views](https://github.com/square/mortar), pomijając potrzebę Fragmentów, ale nadal nie jest to powszechnie zalecana praktyka w społeczności.
+
+Z powodu historii interfejsu API Androida możesz swobodnie traktować fragmenty jako kawałki interfejsu użytkownika ekranu. Innymi słowy, Fragmenty są zwykle związane z interfejsem użytkownika. Działania mogą być luźno uważane za kontrolery, są szczególnie ważne dla ich cyklu życia i zarządzania stanem. Prawdopodobnie zauważysz różnice w tych rolach: czynności mogą przenosić role interfejsu użytkownika ([dostarczanie przejść między ekranami](https://developer.android.com/about/versions/lollipop.html)) i [fragmenty mogą być używane wyłącznie jako kontrolery](http://developer.android.com/guide/components/fragments.html#AddingWithoutUI). Proponujemy używać ostrożnie, podejmując świadome decyzje, ponieważ istnieją wady przy wyborze architektury zorientowanej wyłącznie na: fragmenty, aktywności lub widoki. Oto kilka rad, na co należy uważać, ale potraktuj je z przymrużeniem oka:
+
+- Unikaj używania [fragmentów zagnieżdżonych](https://developer.android.com/about/versions/android-4.2.html#NestedFragments) zbyt rozlegle, ponieważ mogą wystąpić [błędy matryoshki](http://delyan.me/android-s-matryoshka-problem/). Użyj zagnieżdżonych fragmentów tylko wtedy, gdy ma to sens (na przykład fragmenty w przesuwanym poziomo widoku ViewPager wewnątrz fragmentu podobnego do ekranu (screen-like fragment)) lub jeśli jest to świadoma decyzja.
+- Unikaj umieszczania zbyt dużej ilości kodu w Activity. O ile to możliwe, przechowuj je w postaci lekkich kontenerów, istniejących w aplikacji głównie w cyklu życia i innych ważnych interfejsach Androida (Android-interfacing APIs). Preferuj Single-Fragment Activities zamiast zwykłych Activities - umieść kod UI w Fragmencie. To sprawia, że można go ponownie użyć na wypadek, gdyby trzeba było go zmienić w układzie kart lub na ekranie z wieloma fragmentami tabletu. Unikaj aktywności bez odpowiedniego fragmentu, chyba że podejmiesz świadomą decyzję.
+
+### Struktura pakietów Java
+
+Zalecamy użycie struktury pakietu *opartej na funkcjach* dla Twojego kodu. Ma to następujące zalety:
+
+- Wyraźniejsza zależność funkcji i granic interfejsu.
+- Promuje enkapsulację.
+- Łatwiejsze zrozumienie komponentów definiujących tę funkcję.
+- Zmniejsza ryzyko nieświadomej modyfikacji niepowiązanego lub współdzielonego kodu.
+- Prostsza nawigacja: większość powiązanych klas będzie w jednym pakiecie.
+- Łatwiejsze usuwanie funkcji.
+- Upraszcza przejście do struktury budowania opartej na modułach (lepsze czasy budowy i obsługa aplikacji błyskawicznych {Instant Apps})
+
+
+Alternatywne podejście do definiowania pakietów poprzez *jak* funkcja jest budowana (poprzez umieszczanie powiązanych działań, fragmentów, adapterów itp. w oddzielnych pakietach) może prowadzić do fragmentacji kodu z mniejszą elastycznością implementacji. Co najważniejsze, utrudnia to zrozumienie kodu w zakresie jego podstawowej roli: zapewnienie funkcji dla aplikacji.
+
